@@ -9,23 +9,23 @@ from sklearn.decomposition import PCA
 import warnings
 warnings.filterwarnings('ignore')
 
-# Create a properly formatted Mall Customer Dataset with exactly 200 entries
+
 np.random.seed(42)
 
-# Generate 200 customer IDs
+
 customer_ids = list(range(1, 201))
 
-# Generate genders (approximately balanced)
+
 genders = ['Male'] * 100 + ['Female'] * 100
 np.random.shuffle(genders)
 
-# Generate ages (18-70)
+
 ages = np.random.randint(18, 71, 200)
 
-# Generate annual income (15-140k)
+
 incomes = np.random.randint(15, 141, 200)
 
-# Generate spending scores (1-100) with some correlation to age and income
+
 spending_scores = []
 for age, income in zip(ages, incomes):
     base_score = 100 - (age / 2) + (income / 3)
@@ -34,7 +34,7 @@ for age, income in zip(ages, incomes):
 
 spending_scores = [max(1, min(100, score)) for score in spending_scores]
 
-# Create the DataFrame
+
 data = pd.DataFrame({
     'CustomerID': customer_ids,
     'Gender': genders,
@@ -54,20 +54,17 @@ print("\nDescriptive statistics:")
 print(data.describe())
 print("\n" + "=" * 50 + "\n")
 
-# Check for missing values
+
 print("Missing values check:")
 print(data.isnull().sum())
 print("\n" + "=" * 50 + "\n")
 
-# Data Preprocessing
-# Convert Gender to numerical values
+
 data['Gender'] = data['Gender'].map({'Male': 0, 'Female': 1})
 
-# Select features for clustering
 features = ['Age', 'Annual Income (k$)', 'Spending Score (1-100)']
 X = data[features]
 
-# Standardize the features
 scaler = StandardScaler()
 X_scaled = scaler.fit_transform(X)
 
@@ -75,8 +72,7 @@ print("Features after standardization:")
 print(pd.DataFrame(X_scaled, columns=features).head())
 print("\n" + "=" * 50 + "\n")
 
-# Determine optimal number of clusters using Elbow Method
-wcss = []  # Within-Cluster Sum of Square
+wcss = []  
 silhouette_scores = []
 k_range = range(2, 11)
 
@@ -85,12 +81,12 @@ for k in k_range:
     kmeans.fit(X_scaled)
     wcss.append(kmeans.inertia_)
     
-    # Calculate silhouette score
-    if k > 1:  # Silhouette score requires at least 2 clusters
+    
+    if k > 1:  
         score = silhouette_score(X_scaled, kmeans.labels_)
         silhouette_scores.append(score)
 
-# Plot Elbow Method
+
 plt.figure(figsize=(15, 5))
 
 plt.subplot(1, 2, 1)
@@ -110,14 +106,14 @@ plt.grid(True, alpha=0.3)
 plt.tight_layout()
 plt.show()
 
-# Based on elbow method and silhouette score, choose optimal k
-optimal_k = 5  # Typically 5 clusters work well for this dataset
 
-# Apply K-means with optimal k
+optimal_k = 5  
+
+
 kmeans = KMeans(n_clusters=optimal_k, random_state=42, n_init=10)
 kmeans.fit(X_scaled)
 
-# Add cluster labels to the original data
+
 data['Cluster'] = kmeans.labels_
 
 print(f"K-means clustering completed with {optimal_k} clusters")
@@ -125,7 +121,7 @@ print("\nCluster distribution:")
 print(data['Cluster'].value_counts().sort_index())
 print("\n" + "=" * 50 + "\n")
 
-# Analyze cluster characteristics
+
 cluster_summary = data.groupby('Cluster')[features + ['Gender']].mean()
 cluster_summary['Count'] = data['Cluster'].value_counts()
 
@@ -133,17 +129,17 @@ print("Cluster Summary:")
 print(cluster_summary)
 print("\n" + "=" * 50 + "\n")
 
-# Visualize clusters using PCA for dimensionality reduction
+
 pca = PCA(n_components=2)
 X_pca = pca.fit_transform(X_scaled)
 
-# Create a DataFrame for visualization
+
 cluster_viz = pd.DataFrame(X_pca, columns=['PC1', 'PC2'])
 cluster_viz['Cluster'] = data['Cluster']
 
 plt.figure(figsize=(15, 12))
 
-# Plot 1: PCA visualization
+
 plt.subplot(2, 2, 1)
 scatter = plt.scatter(cluster_viz['PC1'], cluster_viz['PC2'], c=cluster_viz['Cluster'], 
                      cmap='viridis', alpha=0.7, s=50)
@@ -153,7 +149,7 @@ plt.title('Customer Clusters (PCA Visualization)')
 plt.colorbar(scatter, label='Cluster')
 plt.grid(True, alpha=0.3)
 
-# Plot 2: Age vs Spending Score
+
 plt.subplot(2, 2, 2)
 scatter = plt.scatter(data['Age'], data['Spending Score (1-100)'], 
                      c=data['Cluster'], cmap='viridis', alpha=0.7, s=50)
@@ -163,7 +159,7 @@ plt.title('Age vs Spending Score by Cluster')
 plt.colorbar(scatter, label='Cluster')
 plt.grid(True, alpha=0.3)
 
-# Plot 3: Annual Income vs Spending Score
+
 plt.subplot(2, 2, 3)
 scatter = plt.scatter(data['Annual Income (k$)'], data['Spending Score (1-100)'], 
                      c=data['Cluster'], cmap='viridis', alpha=0.7, s=50)
@@ -173,7 +169,7 @@ plt.title('Income vs Spending Score by Cluster')
 plt.colorbar(scatter, label='Cluster')
 plt.grid(True, alpha=0.3)
 
-# Plot 4: Cluster distribution
+
 plt.subplot(2, 2, 4)
 cluster_counts = data['Cluster'].value_counts()
 plt.bar(cluster_counts.index, cluster_counts.values, color=plt.cm.viridis(np.linspace(0, 1, optimal_k)))
@@ -185,7 +181,7 @@ plt.xticks(range(optimal_k))
 plt.tight_layout()
 plt.show()
 
-# Detailed cluster analysis
+
 print("Detailed Cluster Analysis:")
 print("=" * 40)
 
@@ -209,7 +205,7 @@ for cluster in range(optimal_k):
     female_count = gender_dist.get(1, 0)
     print(f"Gender distribution: {male_count} Male, {female_count} Female")
 
-# Customer segmentation insights
+
 print("\n" + "=" * 50)
 print("CUSTOMER SEGMENTATION INSIGHTS:")
 print("=" * 50)
@@ -219,11 +215,11 @@ print("3. Target for Upselling: Moderate spenders who could spend more")
 print("4. Demographic Patterns: Age and income strongly influence spending behavior")
 print("5. Marketing Strategy: Different clusters require tailored marketing approaches")
 
-# Save the results
+
 data.to_csv('customer_segmentation_results.csv', index=False)
 print("\nResults saved to 'customer_segmentation_results.csv'")
 
-# Example: Predict cluster for new customers
+
 new_customers = pd.DataFrame({
     'Age': [25, 45, 60],
     'Annual Income (k$)': [40, 80, 30],
@@ -240,7 +236,7 @@ for i, (age, income, score, cluster) in enumerate(zip(new_customers['Age'],
                                                      predicted_clusters)):
     print(f"Customer {i+1}: Age={age}, Income=${income}k, Score={score} → Cluster {cluster} ({cluster_descriptions[cluster]})")
 
-# Additional: Show some sample customers from each cluster
+
 print("\n" + "=" * 50)
 print("SAMPLE CUSTOMERS FROM EACH CLUSTER:")
 print("=" * 50)
